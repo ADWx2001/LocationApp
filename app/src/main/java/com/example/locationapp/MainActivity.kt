@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.locationapp.ui.theme.LocationAppTheme
 
@@ -48,9 +49,10 @@ class MainActivity : ComponentActivity() {
      val locationUtils = LocationUtil(context)
      LocationDisplay(locationUtil = locationUtils, viewModel ,context = context)
  }
-
 @Composable
  fun LocationDisplay(locationUtil: LocationUtil, viewModel: ViewModel, context: Context){
+
+     val location = viewModel.location.value
 
      val requestPermissionLauncher = rememberLauncherForActivityResult(
          contract = ActivityResultContracts.RequestMultiplePermissions() ,
@@ -59,6 +61,8 @@ class MainActivity : ComponentActivity() {
              if(permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
                  && permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true){
                  //I have permission
+
+                 locationUtil.requestLocationUpdates(viewModel = viewModel)
              }else{
                 val rationalRequired = ActivityCompat.shouldShowRequestPermissionRationale(
                     context as MainActivity,
@@ -81,9 +85,12 @@ class MainActivity : ComponentActivity() {
          horizontalAlignment = Alignment.CenterHorizontally,
          verticalArrangement = Arrangement.Center){
 
+
+
          Button(onClick = {
              if(locationUtil.hasLocationPermission(context)){
                  //permission already have get the location
+                 locationUtil.requestLocationUpdates(viewModel)
              }else{
                  //location doesn't have get the access for the location
                  requestPermissionLauncher.launch(

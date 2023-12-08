@@ -1,18 +1,38 @@
 package com.example.locationapp
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Looper
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 
 class LocationUtil(var context: Context) {
 
     private val _fusedLocationClien:FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+@SuppressLint("MissingPermission")
+    fun requestLocationUpdates(viewModel: ViewModel){
+        val locationCallback = object : LocationCallback(){
+            override fun onLocationResult(locationResult : LocationResult) {
+                super.onLocationResult(locationResult)
+                locationResult.lastLocation?.let {
+                    val location = LocationData(latitude = it.latitude, longitude = it.longitude)
+                    viewModel.updateLocation(location)
 
-    fun requestLocationUpdates(viewModel: LocationViewModel){
+                }
+            }
+        }
 
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).build()
+
+        _fusedLocationClien.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
     }
     
     fun hasLocationPermission(context: Context):Boolean{
